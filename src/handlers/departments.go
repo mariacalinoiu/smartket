@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type department struct {
+type Department struct {
 	ID   int    `json:"ID"`
 	Name string `json:"name"`
 }
@@ -22,7 +22,7 @@ func handleDepartments(w http.ResponseWriter, r *http.Request, db DBClient, logg
 		response, status, err = getDepartments(db)
 	default:
 		status = http.StatusBadRequest
-		err = errors.New("wrong method type for /products route")
+		err = errors.New("wrong method type for /departments route")
 	}
 
 	if err != nil {
@@ -48,12 +48,12 @@ func handleDepartments(w http.ResponseWriter, r *http.Request, db DBClient, logg
 func getDepartments(db DBClient) ([]byte, int, error) {
 	departments, err := db.getDepartments()
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.New("could not get products in category")
+		return nil, http.StatusInternalServerError, errors.New("could not get departments")
 	}
 
 	response, err := json.Marshal(departments)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.New("could not marshal products response json")
+		return nil, http.StatusInternalServerError, errors.New("could not marshal departments response json")
 	}
 
 	return response, http.StatusOK, nil

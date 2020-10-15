@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-type category struct {
+type Category struct {
 	ID           int    `json:"ID"`
 	Name         string `json:"name"`
 	DepartmentId int    `json:"departmentID"`
@@ -60,7 +60,7 @@ func getCategories(r *http.Request, db DBClient) ([]byte, int, error) {
 	}
 	categories, err := db.getCategoriesByDepartmentID(categoryId)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.New("could not get categories in department")
+		return nil, http.StatusInternalServerError, errors.New("could not get categories in Department")
 	}
 
 	response, err := json.Marshal(categories)

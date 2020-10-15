@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-type product struct {
+type Product struct {
 	ID          int     `json:"ID"`
 	Name        string  `json:"name"`
 	ImageURL    string  `json:"imageURL"`
@@ -63,7 +63,7 @@ func getProducts(r *http.Request, db DBClient) ([]byte, int, error) {
 	}
 	products, err := db.getProductsByCategoryID(categoryId)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.New("could not get products in category")
+		return nil, http.StatusInternalServerError, errors.New("could not get products in Category")
 	}
 
 	response, err := json.Marshal(products)
