@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"datasources"
+	"github.com/mariacalinoiu/smartket/src/datasources"
 )
 
 func HandleProducts(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {

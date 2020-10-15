@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"datasources"
-	"repositories"
+	"github.com/mariacalinoiu/smartket/src/datasources"
+	"github.com/mariacalinoiu/smartket/src/repositories"
 )
 
 func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {

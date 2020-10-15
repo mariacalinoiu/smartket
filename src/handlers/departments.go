@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"datasources"
+	"github.com/mariacalinoiu/smartket/src/datasources"
 )
 
 func HandleDepartments(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
