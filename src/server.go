@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mariacalinoiu/smartket/blob/master/src/datasources"
+	"github.com/mariacalinoiu/smartket/blob"
 )
 
 type server struct {
