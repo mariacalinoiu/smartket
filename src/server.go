@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/mariacalinoiu/smartket/blob/master/src/datasources"
 )
 
 type server struct {
@@ -32,7 +34,7 @@ func logWith(logger *log.Logger) option {
 	}
 }
 
-func setup(logger *log.Logger, db DBClient) *http.Server {
+func setup(logger *log.Logger, db dbClient_go.DB) *http.Server {
 	server := newServer(db, logWith(logger))
 	return &http.Server{
 		Addr:         ":8081",
