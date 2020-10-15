@@ -172,7 +172,7 @@ func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
 		order.Address,
 		order.VoucherCode,
 		order.PaymentMethod,
-		order.Status,
+		repositories.DefaultOrderStatus,
 	)
 	if err != nil {
 		return 0, err

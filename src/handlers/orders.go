@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/mariacalinoiu/smartket/src/datasources"
@@ -84,8 +85,8 @@ func insertOrder(r *http.Request, db datasources.DBClient) ([]byte, int, error) 
 	var orderID int
 
 	order, err := extractOrderParams(r)
-	if err != nil {
-		return nil, http.StatusBadRequest, errors.New("Order information sent on request body does not match required format")
+	if err != nil || !isOrderValid(order) {
+		return nil, http.StatusBadRequest, errors.New("order information sent on request body does not match required format")
 	}
 
 	if r.Method == http.MethodPost {
@@ -123,4 +124,25 @@ func deleteOrder(r *http.Request, db datasources.DBClient) (int, error) {
 	}
 
 	return http.StatusOK, nil
+}
+
+func isOrderValid(order repositories.Order) bool {
+	if len(order.FirstName) < 1 || len(order.LastName) < 1 || len(order.Email) < 1 || len(order.PhoneNumber) < 1 ||
+		len(order.City) < 1 || len(order.Address) < 1 || len(order.PaymentMethod) < 1 {
+		return false
+	}
+
+	isAlpha := regexp.MustCompile(`^[A-Za-z]+$`).MatchString
+	if !isAlpha(order.FirstName) || !isAlpha(order.LastName) || !isAlpha(order.City) {
+		return false
+	}
+
+	isValidPhoneNumber := regexp.MustCompile(`^[0-9\-\+]{10}$`).MatchString
+	if !isValidPhoneNumber(order.PhoneNumber) {
+		return false
+	}
+
+	isValidEmail := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$").MatchString
+
+	return isValidEmail(order.Email)
 }

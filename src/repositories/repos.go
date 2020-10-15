@@ -1,5 +1,7 @@
 package repositories
 
+const DefaultOrderStatus = "in asteptare"
+
 type (
 	Department struct {
 		ID   int    `json:"ID"`
