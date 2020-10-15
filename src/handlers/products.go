@@ -6,18 +6,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"datasources"
 )
 
-type Product struct {
-	ID          int     `json:"ID"`
-	Name        string  `json:"name"`
-	ImageURL    string  `json:"imageURL"`
-	Description string  `json:"description"`
-	Price       float32 `json:"price"`
-	CategoryID  int     `json:"categoryID"`
-}
-
-func handleProducts(w http.ResponseWriter, r *http.Request, db DBClient, logger *log.Logger) {
+func HandleProducts(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
 	var response []byte
 	var status int
 	var err error
@@ -50,7 +43,7 @@ func handleProducts(w http.ResponseWriter, r *http.Request, db DBClient, logger 
 	logger.Printf("Status: %d %s", status, http.StatusText(status))
 }
 
-func getProducts(r *http.Request, db DBClient) ([]byte, int, error) {
+func getProducts(r *http.Request, db datasources.DBClient) ([]byte, int, error) {
 	params, ok := r.URL.Query()["categoryID"]
 
 	if !ok || len(params[0]) < 1 {
@@ -61,7 +54,7 @@ func getProducts(r *http.Request, db DBClient) ([]byte, int, error) {
 	if err != nil {
 		return nil, http.StatusBadRequest, errors.New("could not convert parameter 'categoryID' to integer")
 	}
-	products, err := db.getProductsByCategoryID(categoryId)
+	products, err := db.GetProductsByCategoryID(categoryId)
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.New("could not get products in Category")
 	}

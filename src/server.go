@@ -9,7 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mariacalinoiu/smartket/blob"
+	_ "github.com/go-sql-driver/mysql"
+
+	"datasources"
+	"handlers"
 )
 
 type server struct {
@@ -34,7 +37,7 @@ func logWith(logger *log.Logger) option {
 	}
 }
 
-func setup(logger *log.Logger, db dbClient_go.DB) *http.Server {
+func setup(logger *log.Logger, db datasources.DBClient) *http.Server {
 	server := newServer(db, logWith(logger))
 	return &http.Server{
 		Addr:         ":8081",
@@ -45,7 +48,7 @@ func setup(logger *log.Logger, db dbClient_go.DB) *http.Server {
 	}
 }
 
-func newServer(db DBClient, options ...option) *server {
+func newServer(db datasources.DBClient, options ...option) *server {
 	s := &server{logger: log.New(ioutil.Discard, "", 0)}
 
 	for _, o := range options {
@@ -56,22 +59,22 @@ func newServer(db DBClient, options ...option) *server {
 
 	s.mux.HandleFunc("/departments",
 		func(w http.ResponseWriter, r *http.Request) {
-			handleDepartments(w, r, db, s.logger)
+			handlers.HandleDepartments(w, r, db, s.logger)
 		},
 	)
 	s.mux.HandleFunc("/categories",
 		func(w http.ResponseWriter, r *http.Request) {
-			handleCategories(w, r, db, s.logger)
+			handlers.HandleCategories(w, r, db, s.logger)
 		},
 	)
 	s.mux.HandleFunc("/products",
 		func(w http.ResponseWriter, r *http.Request) {
-			handleProducts(w, r, db, s.logger)
+			handlers.HandleProducts(w, r, db, s.logger)
 		},
 	)
 	s.mux.HandleFunc("/orders",
 		func(w http.ResponseWriter, r *http.Request) {
-			handleOrders(w, r, db, s.logger)
+			handlers.HandleOrders(w, r, db, s.logger)
 		},
 	)
 
@@ -80,7 +83,7 @@ func newServer(db DBClient, options ...option) *server {
 
 func main() {
 	logger := log.New(os.Stdout, "", 0)
-	db := GetClient("user", "password", "onlinestore")
+	db := datasources.GetClient("user", "password", "onlinestore")
 	hs := setup(logger, db)
 
 	logger.Printf("Listening on http://localhost%s\n", hs.Addr)

@@ -5,14 +5,11 @@ import (
 	"errors"
 	"log"
 	"net/http"
+
+	"datasources"
 )
 
-type Department struct {
-	ID   int    `json:"ID"`
-	Name string `json:"name"`
-}
-
-func handleDepartments(w http.ResponseWriter, r *http.Request, db DBClient, logger *log.Logger) {
+func HandleDepartments(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
 	var response []byte
 	var status int
 	var err error
@@ -45,8 +42,8 @@ func handleDepartments(w http.ResponseWriter, r *http.Request, db DBClient, logg
 	logger.Printf("Status: %d %s", status, http.StatusText(status))
 }
 
-func getDepartments(db DBClient) ([]byte, int, error) {
-	departments, err := db.getDepartments()
+func getDepartments(db datasources.DBClient) ([]byte, int, error) {
+	departments, err := db.GetDepartments()
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.New("could not get departments")
 	}

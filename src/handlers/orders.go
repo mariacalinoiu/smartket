@@ -8,32 +8,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"datasources"
+	"repositories"
 )
 
-type (
-	Order struct {
-		ID                 int              `json:"ID"`
-		FirstName          string           `json:"firstName"`
-		LastName           string           `json:"lastName"`
-		Email              string           `json:"email"`
-		PhoneNumber        string           `json:"phoneNumber"`
-		City               string           `json:"city"`
-		Address            string           `json:"address"`
-		VoucherCode        string           `json:"voucherCode"`
-		DiscountPercentage int              `json:"discountPercentage"`
-		PaymentMethod      string           `json:"paymentMethod"`
-		Status             string           `json:"status"`
-		ProductsOrdered    []orderedProduct `json:"products"`
-	}
-
-	orderedProduct struct {
-		ProductID int `json:"productID"`
-		OrderID   int `json:"orderID"`
-		Quantity  int `json:"quantity"`
-	}
-)
-
-func handleOrders(w http.ResponseWriter, r *http.Request, db DBClient, logger *log.Logger) {
+func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
 	var response []byte
 	var status int
 	var err error
@@ -70,8 +50,8 @@ func handleOrders(w http.ResponseWriter, r *http.Request, db DBClient, logger *l
 	logger.Printf("Status: %d %s", status, http.StatusText(status))
 }
 
-func getOrders(db DBClient) ([]byte, int, error) {
-	orders, err := db.getOrders()
+func getOrders(db datasources.DBClient) ([]byte, int, error) {
+	orders, err := db.GetOrders()
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.New("could not get orders")
 	}
@@ -84,23 +64,23 @@ func getOrders(db DBClient) ([]byte, int, error) {
 	return response, http.StatusOK, nil
 }
 
-func extractOrderParams(r *http.Request) (Order, error) {
-	var unmarshalledOrder Order
+func extractOrderParams(r *http.Request) (repositories.Order, error) {
+	var unmarshalledOrder repositories.Order
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return Order{}, err
+		return repositories.Order{}, err
 	}
 
 	err = json.Unmarshal(body, &unmarshalledOrder)
 	if err != nil {
-		return Order{}, err
+		return repositories.Order{}, err
 	}
 
 	return unmarshalledOrder, nil
 }
 
-func insertOrder(r *http.Request, db DBClient) ([]byte, int, error) {
+func insertOrder(r *http.Request, db datasources.DBClient) ([]byte, int, error) {
 	var orderID int
 
 	order, err := extractOrderParams(r)
@@ -109,9 +89,9 @@ func insertOrder(r *http.Request, db DBClient) ([]byte, int, error) {
 	}
 
 	if r.Method == http.MethodPost {
-		orderID, err = db.insertOrder(order)
+		orderID, err = db.InsertOrder(order)
 	} else {
-		err = db.editOrder(order)
+		err = db.EditOrder(order)
 		orderID = order.ID
 	}
 	if err != nil {
@@ -126,7 +106,7 @@ func insertOrder(r *http.Request, db DBClient) ([]byte, int, error) {
 	return response, http.StatusOK, nil
 }
 
-func deleteOrder(r *http.Request, db DBClient) (int, error) {
+func deleteOrder(r *http.Request, db datasources.DBClient) (int, error) {
 	params, ok := r.URL.Query()["orderID"]
 
 	if !ok || len(params[0]) < 1 {
@@ -137,7 +117,7 @@ func deleteOrder(r *http.Request, db DBClient) (int, error) {
 	if err != nil {
 		return http.StatusBadRequest, errors.New("could not convert parameter 'orderID' to integer")
 	}
-	err = db.deleteOrder(orderID)
+	err = db.DeleteOrder(orderID)
 	if err != nil {
 		return http.StatusInternalServerError, errors.New("could not delete Order")
 	}

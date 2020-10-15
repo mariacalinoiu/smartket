@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"handlers"
+	"repositories"
 )
 
 type DBClient struct {
@@ -29,9 +29,9 @@ func GetClient(user string, password string, dbName string) DBClient {
 	return DBClient{db: db}
 }
 
-func (client DBClient) GetProductsByCategoryID(categoryID int) ([]handlers.Product, error) {
+func (client DBClient) GetProductsByCategoryID(categoryID int) ([]repositories.Product, error) {
 	var (
-		products    []handlers.Product
+		products    []repositories.Product
 		id          int
 		name        string
 		imageURL    string
@@ -56,7 +56,7 @@ func (client DBClient) GetProductsByCategoryID(categoryID int) ([]handlers.Produ
 
 		products = append(
 			products,
-			handlers.Product{
+			repositories.Product{
 				ID:          id,
 				Name:        name,
 				ImageURL:    imageURL,
@@ -75,9 +75,9 @@ func (client DBClient) GetProductsByCategoryID(categoryID int) ([]handlers.Produ
 	return products, nil
 }
 
-func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]handlers.Category, error) {
+func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]repositories.Category, error) {
 	var (
-		categories []handlers.Category
+		categories []repositories.Category
 		id         int
 		name       string
 	)
@@ -99,7 +99,7 @@ func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]handlers
 
 		categories = append(
 			categories,
-			handlers.Category{
+			repositories.Category{
 				ID:           id,
 				Name:         name,
 				DepartmentId: departmentID,
@@ -115,9 +115,9 @@ func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]handlers
 	return categories, nil
 }
 
-func (client DBClient) GetDepartments() ([]handlers.Department, error) {
+func (client DBClient) GetDepartments() ([]repositories.Department, error) {
 	var (
-		departments []handlers.Department
+		departments []repositories.Department
 		id          int
 		name        string
 	)
@@ -138,7 +138,7 @@ func (client DBClient) GetDepartments() ([]handlers.Department, error) {
 
 		departments = append(
 			departments,
-			handlers.Department{
+			repositories.Department{
 				ID:   id,
 				Name: name,
 			},
@@ -153,7 +153,7 @@ func (client DBClient) GetDepartments() ([]handlers.Department, error) {
 	return departments, nil
 }
 
-func (client DBClient) InsertOrder(order handlers.Order) (int, error) {
+func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
 	isVoucherValid := client.isVoucherValid(order.VoucherCode)
 	if !isVoucherValid {
 		return 0, errors.New("the voucher code provided is invalid")
@@ -198,7 +198,7 @@ func (client DBClient) InsertOrder(order handlers.Order) (int, error) {
 	return int(orderID), nil
 }
 
-func (client DBClient) EditOrder(order handlers.Order) error {
+func (client DBClient) EditOrder(order repositories.Order) error {
 	isVoucherValid := client.isVoucherValid(order.VoucherCode)
 	if !isVoucherValid {
 		return errors.New("the voucher code provided is invalid")
@@ -241,12 +241,12 @@ func (client DBClient) DeleteOrder(orderID int) error {
 	return err
 }
 
-func (client DBClient) GetOrders(orderIDProvided ...int) ([]handlers.Order, error) {
+func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, error) {
 	var (
 		orderRows *sql.Rows
 		err       error
 
-		orders             []handlers.Order
+		orders             []repositories.Order
 		orderID            int
 		firstName          string
 		lastName           string
@@ -295,7 +295,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]handlers.Order, erro
 
 		orders = append(
 			orders,
-			handlers.Order{
+			repositories.Order{
 				ID:                 orderID,
 				FirstName:          firstName,
 				LastName:           lastName,
@@ -320,9 +320,9 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]handlers.Order, erro
 	return orders, nil
 }
 
-func (client DBClient) getOrderedProducts(orderID int) ([]handlers.OrderedProduct, error) {
+func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedProduct, error) {
 	var (
-		products  []handlers.OrderedProduct
+		products  []repositories.OrderedProduct
 		productID int
 		quantity  int
 	)
@@ -342,7 +342,7 @@ func (client DBClient) getOrderedProducts(orderID int) ([]handlers.OrderedProduc
 
 		products = append(
 			products,
-			handlers.OrderedProduct{
+			repositories.OrderedProduct{
 				ProductID: productID,
 				OrderID:   orderID,
 				Quantity:  quantity,

@@ -6,15 +6,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"datasources"
 )
 
-type Category struct {
-	ID           int    `json:"ID"`
-	Name         string `json:"name"`
-	DepartmentId int    `json:"departmentID"`
-}
-
-func handleCategories(w http.ResponseWriter, r *http.Request, db DBClient, logger *log.Logger) {
+func HandleCategories(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
 	var response []byte
 	var status int
 	var err error
@@ -47,7 +43,7 @@ func handleCategories(w http.ResponseWriter, r *http.Request, db DBClient, logge
 	logger.Printf("Status: %d %s", status, http.StatusText(status))
 }
 
-func getCategories(r *http.Request, db DBClient) ([]byte, int, error) {
+func getCategories(r *http.Request, db datasources.DBClient) ([]byte, int, error) {
 	params, ok := r.URL.Query()["departmentID"]
 
 	if !ok || len(params[0]) < 1 {
@@ -58,7 +54,7 @@ func getCategories(r *http.Request, db DBClient) ([]byte, int, error) {
 	if err != nil {
 		return nil, http.StatusBadRequest, errors.New("could not convert parameter 'departmentID' to integer")
 	}
-	categories, err := db.getCategoriesByDepartmentID(categoryId)
+	categories, err := db.GetCategoriesByDepartmentID(categoryId)
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.New("could not get categories in Department")
 	}
