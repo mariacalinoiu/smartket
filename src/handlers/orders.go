@@ -32,7 +32,7 @@ func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClien
 	}
 
 	if err != nil {
-		logger.Printf("Status: %d %s", status, http.StatusText(status))
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
 		http.Error(w, err.Error(), status)
 
 		return
@@ -41,7 +41,7 @@ func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClien
 	_, err = w.Write(response)
 	if err != nil {
 		status = http.StatusInternalServerError
-		logger.Printf("Status: %d %s", status, http.StatusText(status))
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
 		http.Error(w, err.Error(), status)
 
 		return
@@ -96,6 +96,7 @@ func insertOrder(r *http.Request, db datasources.DBClient) ([]byte, int, error) 
 		orderID = order.ID
 	}
 	if err != nil {
+		logger.Printf("Internal error: %s", err.Error())
 		return nil, http.StatusInternalServerError, errors.New("could not save Order")
 	}
 
@@ -120,6 +121,7 @@ func deleteOrder(r *http.Request, db datasources.DBClient) (int, error) {
 	}
 	err = db.DeleteOrder(orderID)
 	if err != nil {
+		logger.Printf("Internal error: %s", err.Error())
 		return http.StatusInternalServerError, errors.New("could not delete Order")
 	}
 

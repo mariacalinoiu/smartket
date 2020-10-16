@@ -59,6 +59,8 @@ Make sure that the $GOPATH variable is set to your project home: `export GOPATH=
 
 Check it with `go env`
 
-Build the server with: `cd src && go build server.go`
+Initialize go mod `cd src && go mod init src`
+
+Build the server with: `go build server.go`
 
 Start running the server with `./server`

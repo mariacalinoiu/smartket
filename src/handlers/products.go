@@ -24,7 +24,7 @@ func HandleProducts(w http.ResponseWriter, r *http.Request, db datasources.DBCli
 	}
 
 	if err != nil {
-		logger.Printf("Status: %d %s", status, http.StatusText(status))
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
 		http.Error(w, err.Error(), status)
 
 		return
@@ -33,7 +33,7 @@ func HandleProducts(w http.ResponseWriter, r *http.Request, db datasources.DBCli
 	_, err = w.Write(response)
 	if err != nil {
 		status = http.StatusInternalServerError
-		logger.Printf("Status: %d %s", status, http.StatusText(status))
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
 		http.Error(w, err.Error(), status)
 
 		return
@@ -56,6 +56,7 @@ func getProducts(r *http.Request, db datasources.DBClient) ([]byte, int, error) 
 	}
 	products, err := db.GetProductsByCategoryID(categoryId)
 	if err != nil {
+		logger.Printf("Internal error: %s", err.Error())
 		return nil, http.StatusInternalServerError, errors.New("could not get products in Category")
 	}
 
