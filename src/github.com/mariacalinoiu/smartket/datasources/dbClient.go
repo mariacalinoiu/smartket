@@ -154,27 +154,48 @@ func (client DBClient) GetDepartments() ([]repositories.Department, error) {
 }
 
 func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
-	isVoucherValid := client.isVoucherValid(order.VoucherCode)
-	if !isVoucherValid {
-		return 0, errors.New("the voucher code provided is invalid")
+	var res driver.Result
+	var err error
+	
+	if len(order.VoucherCode) > 0 {
+		if !client.isVoucherValid(order.VoucherCode) {
+			return 0, errors.New("the voucher code provided is invalid")
+		}
+	
+		stmt, err := client.db.Prepare("INSERT INTO Orders(firstName, lastName, email, phoneNumber, city, address, voucherCode, paymentMethod, status, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		if err != nil {
+			return 0, err
+		}
+		res, err = stmt.Exec(
+			order.FirstName,
+			order.LastName,
+			order.Email,
+			order.PhoneNumber,
+			order.City,
+			order.Address,
+			order.VoucherCode,
+			order.PaymentMethod,
+			order.Status,
+			int(time.Now().UnixNano()/1000000000),
+		)
+	} else {
+		stmt, err := client.db.Prepare("INSERT INTO Orders(firstName, lastName, email, phoneNumber, city, address, paymentMethod, status, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		if err != nil {
+			return 0, err
+		}
+		res, err = stmt.Exec(
+			order.FirstName,
+			order.LastName,
+			order.Email,
+			order.PhoneNumber,
+			order.City,
+			order.Address,
+			order.PaymentMethod,
+			order.Status,
+			int(time.Now().UnixNano()/1000000000),
+		)
 	}
-
-	stmt, err := client.db.Prepare("INSERT INTO Orders(firstName, lastName, email, phoneNumber, city, address, voucherCode, paymentMethod, status, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-	if err != nil {
-		return 0, err
-	}
-	res, err := stmt.Exec(
-		order.FirstName,
-		order.LastName,
-		order.Email,
-		order.PhoneNumber,
-		order.City,
-		order.Address,
-		order.VoucherCode,
-		order.PaymentMethod,
-		order.Status,
-		int(time.Now().UnixNano()/1000000000),
-	)
+	
 	if err != nil {
 		return 0, err
 	}
@@ -261,24 +282,18 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		timestamp          int
 		discountPercentage int
 	)
+	
+	query := `
+		SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
+		FROM Orders o, 
+		LEFT JOIN Vouchers v 
+		ON o.voucherCode = v.code 
+	`
 
 	if len(orderIDProvided) == 1 {
-		orderRows, err = client.db.Query(
-			`
-				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
-				FROM Orders o, Vouchers v
-				WHERE o.voucherCode = v.code AND ID = ?
-			`,
-			orderIDProvided[0],
-		)
+		orderRows, err = client.db.Query(query+" WHERE ID = ?", orderIDProvided[0])
 	} else {
-		orderRows, err = client.db.Query(
-			`
-				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
-				FROM Orders o, Vouchers v
-				WHERE o.voucherCode = v.code
-			`,
-		)
+		orderRows, err = client.db.Query(query)
 	}
 	if err != nil {
 		return orders, err
@@ -290,7 +305,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		if err != nil {
 			return orders, err
 		}
-		products, err := client.getOrderedProducts(orderID)
+		products, totalValue, err := client.getOrderedProducts(orderID)
 		if err != nil {
 			return orders, err
 		}
@@ -310,6 +325,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 				PaymentMethod:      paymentMethod,
 				Status:             status,
 				Timestamp:          timestamp,
+				Value:				totalValue * 100 / (100 + float32(discountPercentage)),
 				ProductsOrdered:    products,
 			},
 		)
@@ -323,7 +339,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 	return orders, nil
 }
 
-func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedProduct, error) {
+func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedProduct, float32, error) {
 	var (
 		products    []repositories.OrderedProduct
 		productID   int
@@ -334,9 +350,9 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 		price       float32
 		categoryID  int
 	)
-
-	productOrderRows, err := client.db.Query(
-		`
+	
+	totalValue := float32(0)
+	productOrderRows, err := client.db.Query(`
 			SELECT po.productID, po.quantity, p.name, p.imageURL, p.description, p.price, p.categoryID 
 			FROM ProductOrders po, Products p
 			WHERE po.productID = p.ID AND orderID = ?
@@ -344,14 +360,16 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 		orderID,
 	)
 	if err != nil {
-		return products, err
+		return products, totalValue, err
 	}
 
 	for productOrderRows.Next() {
 		err := productOrderRows.Scan(&productID, &quantity, &name, &imageURL, &description, &price, &categoryID)
 		if err != nil {
-			return products, err
+			return products, totalValue, err
 		}
+		
+		totalValue += price
 
 		products = append(
 			products,
@@ -375,10 +393,10 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 
 	err = productOrderRows.Err()
 	if err != nil {
-		return products, err
+		return products, totalValue, err
 	}
 
-	return products, nil
+	return products, totalValue, nil
 }
 
 func (client DBClient) isVoucherValid(voucherCode string) bool {

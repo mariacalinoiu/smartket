@@ -27,6 +27,7 @@ type (
 		PaymentMethod      string           `json:"paymentMethod"`
 		Status             string           `json:"status"`
 		Timestamp          int              `json:"timestamp"`
+		Value              float32          `json:"value"`
 		ProductsOrdered    []OrderedProduct `json:"products"`
 	}
 
