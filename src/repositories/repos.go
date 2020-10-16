@@ -30,9 +30,10 @@ type (
 	}
 
 	OrderedProduct struct {
-		ProductID int `json:"productID"`
-		OrderID   int `json:"orderID"`
-		Quantity  int `json:"quantity"`
+		ProductID int 	  `json:"productID"`
+		OrderID   int 	  `json:"orderID"`
+		Quantity  int 	  `json:"quantity"`
+		Product   Product `json:"productDetails"`
 	}
 
 	Product struct {

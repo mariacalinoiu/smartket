@@ -329,10 +329,11 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 		imageURL    string
 		description string
 		price       float32
+		categoryID  int
 	)
 	productOrderRows, err := client.db.Query(
 		`
-			SELECT po.productID, po.quantity, p.name, p.imageURL, p.description, p.price 
+			SELECT po.productID, po.quantity, p.name, p.imageURL, p.description, p.price, p.categoryID 
 			FROM ProductOrders po, Products p
 			WHERE po.productID = p.ID AND orderID = ?
 		`,
@@ -343,7 +344,7 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 	}
 
 	for productOrderRows.Next() {
-		err := productOrderRows.Scan(&productID, &quantity)
+		err := productOrderRows.Scan(&productID, &quantity, &name, &imageURL, &description, &price, &categoryID)
 		if err != nil {
 			return products, err
 		}
@@ -354,6 +355,14 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 				ProductID: productID,
 				OrderID:   orderID,
 				Quantity:  quantity,
+				Product:   repositories.Product{
+					ID:          productID,
+					Name:        name,
+					ImageURL:    imageURL,
+					Description: description,
+					Price:       price,
+					CategoryID:  categoryID,
+				},
 			},
 		)
 
