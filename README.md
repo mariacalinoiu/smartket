@@ -34,7 +34,7 @@ Server documentation
     
 
     method:         POST
-    body:           an order, along with ordered product IDs
+    body:           an order, along with ordered product details
     returns:        the corresponding orderID
     example URL:    http://localhost:8080/orders
     
@@ -60,3 +60,5 @@ Make sure that the $GOPATH variable is set to your project home: `export GOPATH=
 Check it with `go env`
 
 Build the server with: `cd src && go build server.go`
+
+Start running the server with `./server`
