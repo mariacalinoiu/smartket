@@ -322,12 +322,20 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 
 func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedProduct, error) {
 	var (
-		products  []repositories.OrderedProduct
-		productID int
-		quantity  int
+		products    []repositories.OrderedProduct
+		productID   int
+		quantity    int
+		name        string
+		imageURL    string
+		description string
+		price       float32
 	)
 	productOrderRows, err := client.db.Query(
-		"SELECT productID, quantity FROM ProductOrders WHERE orderID = ?",
+		`
+			SELECT po.productID, po.quantity, p.name, p.imageURL, p.description, p.price 
+			FROM ProductOrders po, Products p
+			WHERE po.productID = p.ID AND orderID = ?
+		`,
 		orderID,
 	)
 	if err != nil {
