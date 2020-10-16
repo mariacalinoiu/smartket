@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"time"
@@ -201,7 +202,7 @@ func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
 	}
 	orderID, err := res.LastInsertId()
 
-	stmt, err = client.db.Prepare("INSERT INTO ProductOrders(orderID, productID, quantity) VALUES(?, ?, ?)")
+	stmt, err := client.db.Prepare("INSERT INTO ProductOrders(orderID, productID, quantity) VALUES(?, ?, ?)")
 	if err != nil {
 		return 0, err
 	}
