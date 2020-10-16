@@ -55,4 +55,6 @@ Server documentation
 Running the server
 ------------------
 
-Run the server with: `cd src && go run .`
+Make sure that the $GOPATH variable is set to your project home: `export GOPATH="/home/ec2-user/environment/smartket"`
+Check it with `go env`
+Build the server with: `cd src && go build server.go`
