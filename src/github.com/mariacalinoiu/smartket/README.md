@@ -55,8 +55,8 @@ Server documentation
 Running the server
 ------------------
 
-Clean project dependencies:  `cd src && go clean`
+Reach project folder:  `cd ~/environment/smartket/src/github.com/mariacalinoiu/smartket/`
 
-Build the server with: `go build github.com/mariacalinoiu/smartket/server.go`
+Build the server with: `go build server.go`
 
 Start running the server with `./server`
