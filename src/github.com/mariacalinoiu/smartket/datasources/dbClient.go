@@ -277,16 +277,16 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		phoneNumber        string
 		city               string
 		address            string
-		voucherCode        string
+		voucherCode        *string
 		paymentMethod      string
 		status             string
 		timestamp          int
-		discountPercentage int
+		discountPercentage *int
 	)
 	
 	query := `
 		SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
-		FROM Orders o, 
+		FROM Orders o 
 		LEFT JOIN Vouchers v 
 		ON o.voucherCode = v.code 
 	`
@@ -310,6 +310,13 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		if err != nil {
 			return orders, err
 		}
+		
+		code := ""
+		discount := 0
+		if voucherCode != nil {
+			code = *voucherCode
+			discount = *discountPercentage
+		}
 
 		orders = append(
 			orders,
@@ -321,12 +328,12 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 				PhoneNumber:        phoneNumber,
 				City:               city,
 				Address:            address,
-				VoucherCode:        voucherCode,
-				DiscountPercentage: discountPercentage,
+				VoucherCode:        code,
+				DiscountPercentage: discount,
 				PaymentMethod:      paymentMethod,
 				Status:             status,
 				Timestamp:          timestamp,
-				Value:				totalValue * 100 / (100 + float32(discountPercentage)),
+				Value:				totalValue * 100 / (100 + float32(discount)),
 				ProductsOrdered:    products,
 			},
 		)
@@ -367,6 +374,7 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 	for productOrderRows.Next() {
 		err := productOrderRows.Scan(&productID, &quantity, &name, &imageURL, &description, &price, &categoryID)
 		if err != nil {
+			fmt.Println(err.Error())
 			return products, totalValue, err
 		}
 		
@@ -388,9 +396,9 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 				},
 			},
 		)
-
-		productOrderRows.Close()
 	}
+
+	productOrderRows.Close()
 
 	err = productOrderRows.Err()
 	if err != nil {
