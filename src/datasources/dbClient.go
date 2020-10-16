@@ -159,7 +159,7 @@ func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
 		return 0, errors.New("the voucher code provided is invalid")
 	}
 
-	stmt, err := client.db.Prepare("INSERT INTO Orders(firstName, lastName, email, phoneNumber, city, address, voucherCode, paymentMethod, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := client.db.Prepare("INSERT INTO Orders(firstName, lastName, email, phoneNumber, city, address, voucherCode, paymentMethod, status, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return 0, err
 	}
@@ -172,7 +172,8 @@ func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
 		order.Address,
 		order.VoucherCode,
 		order.PaymentMethod,
-		repositories.DefaultOrderStatus,
+		order.Status,
+		int(time.Now().UnixNano() / 1000000000),
 	)
 	if err != nil {
 		return 0, err
@@ -257,13 +258,14 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		voucherCode        string
 		paymentMethod      string
 		status             string
+		timestamp		   int
 		discountPercentage int
 	)
 
 	if len(orderIDProvided) == 1 {
 		orderRows, err = client.db.Query(
 			`
-				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, v.discountPercentage 
+				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
 				FROM Orders o, Vouchers v
 				WHERE o.voucherCode = v.code AND ID = ?
 			`,
@@ -272,7 +274,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 	} else {
 		orderRows, err = client.db.Query(
 			`
-				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, v.discountPercentage 
+				SELECT o.ID, o.firstName, o.lastName, o.email, o.phoneNumber, o.city, o.address, o.voucherCode, o.paymentMethod, o.status, o.timestamp, v.discountPercentage 
 				FROM Orders o, Vouchers v
 				WHERE o.voucherCode = v.code
 			`,
@@ -284,7 +286,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 
 	defer orderRows.Close()
 	for orderRows.Next() {
-		err := orderRows.Scan(&orderID, &firstName, &lastName, &email, &phoneNumber, &city, &address, &voucherCode, &paymentMethod, &status, &discountPercentage)
+		err := orderRows.Scan(&orderID, &firstName, &lastName, &email, &phoneNumber, &city, &address, &voucherCode, &paymentMethod, &status, &timestamp, &discountPercentage)
 		if err != nil {
 			return orders, err
 		}
@@ -307,6 +309,7 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 				DiscountPercentage: discountPercentage,
 				PaymentMethod:      paymentMethod,
 				Status:             status,
+				Timestamp:			timestamp,
 				ProductsOrdered:    products,
 			},
 		)
@@ -331,6 +334,7 @@ func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedPr
 		price       float32
 		categoryID  int
 	)
+
 	productOrderRows, err := client.db.Query(
 		`
 			SELECT po.productID, po.quantity, p.name, p.imageURL, p.description, p.price, p.categoryID 

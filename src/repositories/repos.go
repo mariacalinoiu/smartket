@@ -26,6 +26,7 @@ type (
 		DiscountPercentage int              `json:"discountPercentage"`
 		PaymentMethod      string           `json:"paymentMethod"`
 		Status             string           `json:"status"`
+		Timestamp		   int              `json:"timestamp"`
 		ProductsOrdered    []OrderedProduct `json:"products"`
 	}
 
