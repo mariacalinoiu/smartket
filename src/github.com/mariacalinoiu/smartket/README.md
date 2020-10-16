@@ -14,7 +14,7 @@ Server documentation
     method:         GET
     parameters:     departmentID int
     returns:        a JSON of categories in the given departmentID
-    example URL:    http://localhost:8081/categories
+    example URL:    http://localhost:8081/categories?departmentID=1
 
 
 /products
@@ -22,15 +22,16 @@ Server documentation
     method:         GET
     parameters:     categoryID int
     returns:        a JSON of products in the given categoryID
-    example URL:    http://localhost:8081/products
+    example URL:    http://localhost:8081/products?categoryID=1
 
 
 /orders
     
     method:         GET
-    parameters:     -
+    parameters:     orderID int (optional)
     returns:        a JSON of orders
     example URL:    http://localhost:8081/orders
+                    http://localhost:8081/orders?orderID=1
     
 
     method:         POST
@@ -48,7 +49,7 @@ Server documentation
     method:         DELETE
     parameters:     orderID int
     returns:        -
-    example URL:    http://localhost:8081/orders
+    example URL:    http://localhost:8081/orders?orderID=1
     
 ------------------
  

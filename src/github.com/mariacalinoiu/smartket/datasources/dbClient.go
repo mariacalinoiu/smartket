@@ -30,7 +30,7 @@ func GetClient(user string, password string, dbName string) DBClient {
 	return DBClient{db: db}
 }
 
-func (client DBClient) GetProductsByCategoryID(categoryID int) ([]repositories.Product, error) {
+func (client DBClient) GetProductsByCategoryID(categoryID int) (repositories.ProductsJSON, error) {
 	var (
 		products    []repositories.Product
 		id          int
@@ -45,14 +45,14 @@ func (client DBClient) GetProductsByCategoryID(categoryID int) ([]repositories.P
 		categoryID,
 	)
 	if err != nil {
-		return products, err
+		return repositories.ProductsJSON{Products: products}, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &imageURL, &description, &price)
 		if err != nil {
-			return products, err
+			return repositories.ProductsJSON{Products: products}, err
 		}
 
 		products = append(
@@ -70,13 +70,13 @@ func (client DBClient) GetProductsByCategoryID(categoryID int) ([]repositories.P
 
 	err = rows.Err()
 	if err != nil {
-		return products, err
+		return repositories.ProductsJSON{Products: products}, err
 	}
 
-	return products, nil
+	return repositories.ProductsJSON{Products: products}, nil
 }
 
-func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]repositories.Category, error) {
+func (client DBClient) GetCategoriesByDepartmentID(departmentID int) (repositories.CategoriesJSON, error) {
 	var (
 		categories []repositories.Category
 		id         int
@@ -88,14 +88,14 @@ func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]reposito
 		departmentID,
 	)
 	if err != nil {
-		return categories, err
+		return repositories.CategoriesJSON{Categories: categories}, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			return categories, err
+			return repositories.CategoriesJSON{Categories: categories}, err
 		}
 
 		categories = append(
@@ -110,13 +110,13 @@ func (client DBClient) GetCategoriesByDepartmentID(departmentID int) ([]reposito
 
 	err = rows.Err()
 	if err != nil {
-		return categories, err
+		return repositories.CategoriesJSON{Categories: categories}, err
 	}
 
-	return categories, nil
+	return repositories.CategoriesJSON{Categories: categories}, nil
 }
 
-func (client DBClient) GetDepartments() ([]repositories.Department, error) {
+func (client DBClient) GetDepartments() (repositories.DepartmentsJSON, error) {
 	var (
 		departments []repositories.Department
 		id          int
@@ -127,14 +127,14 @@ func (client DBClient) GetDepartments() ([]repositories.Department, error) {
 		"SELECT ID, name FROM Departments",
 	)
 	if err != nil {
-		return departments, err
+		return repositories.DepartmentsJSON{Departments: departments}, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			return departments, err
+			return repositories.DepartmentsJSON{Departments: departments}, err
 		}
 
 		departments = append(
@@ -148,10 +148,10 @@ func (client DBClient) GetDepartments() ([]repositories.Department, error) {
 
 	err = rows.Err()
 	if err != nil {
-		return departments, err
+		return repositories.DepartmentsJSON{Departments: departments}, err
 	}
 
-	return departments, nil
+	return repositories.DepartmentsJSON{Departments: departments}, nil
 }
 
 func (client DBClient) InsertOrder(order repositories.Order) (int, error) {
@@ -264,7 +264,7 @@ func (client DBClient) DeleteOrder(orderID int) error {
 	return err
 }
 
-func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, error) {
+func (client DBClient) GetOrders(orderIDProvided ...int) (repositories.OrdersJSON, error) {
 	var (
 		orderRows *sql.Rows
 		err       error
@@ -297,18 +297,18 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 		orderRows, err = client.db.Query(query)
 	}
 	if err != nil {
-		return orders, err
+		return repositories.OrdersJSON{Orders: orders}, err
 	}
 
 	defer orderRows.Close()
 	for orderRows.Next() {
 		err := orderRows.Scan(&orderID, &firstName, &lastName, &email, &phoneNumber, &city, &address, &voucherCode, &paymentMethod, &status, &timestamp, &discountPercentage)
 		if err != nil {
-			return orders, err
+			return repositories.OrdersJSON{Orders: orders}, err
 		}
 		products, totalValue, err := client.getOrderedProducts(orderID)
 		if err != nil {
-			return orders, err
+			return repositories.OrdersJSON{Orders: orders}, err
 		}
 		
 		code := ""
@@ -341,10 +341,10 @@ func (client DBClient) GetOrders(orderIDProvided ...int) ([]repositories.Order, 
 
 	err = orderRows.Err()
 	if err != nil {
-		return orders, err
+		return repositories.OrdersJSON{Orders: orders}, err
 	}
 
-	return orders, nil
+	return repositories.OrdersJSON{Orders: orders}, nil
 }
 
 func (client DBClient) getOrderedProducts(orderID int) ([]repositories.OrderedProduct, float32, error) {

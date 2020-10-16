@@ -3,15 +3,27 @@ package repositories
 const DefaultOrderStatus = "in asteptare"
 
 type (
+	DepartmentsJSON struct {
+		Departments []Department `json:"departments"`
+	}
+
 	Department struct {
 		ID   int    `json:"ID"`
 		Name string `json:"name"`
+	}
+
+	CategoriesJSON struct {
+		Categories []Category `json:"categories"`
 	}
 
 	Category struct {
 		ID           int    `json:"ID"`
 		Name         string `json:"name"`
 		DepartmentId int    `json:"departmentID"`
+	}
+
+	OrdersJSON struct {
+		Orders []Order `json:"orders"`
 	}
 
 	Order struct {
@@ -36,6 +48,10 @@ type (
 		OrderID   int     `json:"orderID"`
 		Quantity  int     `json:"quantity"`
 		Product   Product `json:"productDetails"`
+	}
+
+	ProductsJSON struct {
+		Products []Product `json:"products"`
 	}
 
 	Product struct {
