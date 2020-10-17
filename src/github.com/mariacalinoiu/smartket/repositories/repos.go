@@ -22,6 +22,10 @@ type (
 		DepartmentId int    `json:"departmentID"`
 	}
 
+	OrderIDResponse struct {
+		OrderID int `json:"orderID"`
+	}
+
 	OrdersJSON struct {
 		Orders []Order `json:"orders"`
 	}
@@ -39,12 +43,13 @@ type (
 		PaymentMethod      string           `json:"paymentMethod"`
 		Status             string           `json:"status"`
 		Timestamp          int              `json:"timestamp"`
+		Date               string           `json:"date"`
 		Value              float32          `json:"value"`
 		ProductsOrdered    []OrderedProduct `json:"products"`
 	}
 
 	OrderedProduct struct {
-		ProductID int     `json:"productID"`
+		ProductID int     `json:"ID"`
 		OrderID   int     `json:"orderID"`
 		Quantity  int     `json:"quantity"`
 		Product   Product `json:"productDetails"`

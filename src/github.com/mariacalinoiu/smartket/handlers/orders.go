@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -83,9 +82,9 @@ func extractOrderParams(r *http.Request) (repositories.Order, error) {
 }
 
 func insertOrder(r *http.Request, db datasources.DBClient, logger *log.Logger) ([]byte, int, error) {
-	var orderID int
-
 	order, err := extractOrderParams(r)
+	orderID := datasources.GetOrderID(order.ID)
+
 	if err != nil || !isOrderValid(order) {
 		return nil, http.StatusBadRequest, errors.New("order information sent on request body does not match required format")
 	}
@@ -94,14 +93,13 @@ func insertOrder(r *http.Request, db datasources.DBClient, logger *log.Logger) (
 		orderID, err = db.InsertOrder(order)
 	} else {
 		err = db.EditOrder(order)
-		orderID = order.ID
 	}
 	if err != nil {
 		logger.Printf("Internal error: %s", err.Error())
 		return nil, http.StatusInternalServerError, errors.New("could not save Order")
 	}
 
-	response, err := json.Marshal(fmt.Sprintf("orderID:%d", orderID))
+	response, err := json.Marshal(orderID)
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.New("could not marshal orderID response json")
 	}
