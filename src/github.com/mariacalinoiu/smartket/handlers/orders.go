@@ -13,7 +13,7 @@ import (
 	"github.com/mariacalinoiu/smartket/repositories"
 )
 
-func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
+func HandleOrdersAdd(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
 	var response []byte
 	var status int
 	var err error
@@ -22,7 +22,7 @@ func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClien
 	case http.MethodGet:
 		response, status, err = getOrders(db, logger)
 	case http.MethodPost, http.MethodPut:
-		response, status, err = insertOrder(r, db, logger)
+		response, status, err = insertOrder(r, db, logger, r.Method == http.MethodPut)
 	case http.MethodDelete:
 		status, err = deleteOrder(r, db, logger)
 	default:
@@ -38,6 +38,71 @@ func HandleOrders(w http.ResponseWriter, r *http.Request, db datasources.DBClien
 	}
 
 	_, err = w.Write(response)
+	if err != nil {
+		status = http.StatusInternalServerError
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
+		http.Error(w, err.Error(), status)
+
+		return
+	}
+
+	status = http.StatusOK
+	logger.Printf("Status: %d %s", status, http.StatusText(status))
+}
+
+func HandleOrdersUpdate(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
+	var response []byte
+	var status int
+	var err error
+
+	switch r.Method {
+	case http.MethodPost:
+		response, status, err = insertOrder(r, db, logger, true)
+	default:
+		status = http.StatusBadRequest
+		err = errors.New("wrong method type for /orders/update route")
+	}
+
+	if err != nil {
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
+		http.Error(w, err.Error(), status)
+
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		status = http.StatusInternalServerError
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
+		http.Error(w, err.Error(), status)
+
+		return
+	}
+
+	status = http.StatusOK
+	logger.Printf("Status: %d %s", status, http.StatusText(status))
+}
+
+func HandleOrdersDelete(w http.ResponseWriter, r *http.Request, db datasources.DBClient, logger *log.Logger) {
+	var status int
+	var err error
+
+	switch r.Method {
+	case http.MethodGet:
+		status, err = deleteOrder(r, db, logger)
+	default:
+		status = http.StatusBadRequest
+		err = errors.New("wrong method type for /orders/delete route")
+	}
+
+	if err != nil {
+		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
+		http.Error(w, err.Error(), status)
+
+		return
+	}
+
+	_, err = w.Write([]byte("deleted order"))
 	if err != nil {
 		status = http.StatusInternalServerError
 		logger.Printf("Error: %s; Status: %d %s", err.Error(), status, http.StatusText(status))
@@ -81,7 +146,7 @@ func extractOrderParams(r *http.Request) (repositories.Order, error) {
 	return unmarshalledOrder, nil
 }
 
-func insertOrder(r *http.Request, db datasources.DBClient, logger *log.Logger) ([]byte, int, error) {
+func insertOrder(r *http.Request, db datasources.DBClient, logger *log.Logger, update bool) ([]byte, int, error) {
 	order, err := extractOrderParams(r)
 	orderID := datasources.GetOrderID(order.ID)
 
@@ -89,10 +154,10 @@ func insertOrder(r *http.Request, db datasources.DBClient, logger *log.Logger) (
 		return nil, http.StatusBadRequest, errors.New("order information sent on request body does not match required format")
 	}
 
-	if r.Method == http.MethodPost {
-		orderID, err = db.InsertOrder(order)
-	} else {
+	if update {
 		err = db.EditOrder(order)
+	} else {
+		orderID, err = db.InsertOrder(order)
 	}
 	if err != nil {
 		logger.Printf("Internal error: %s", err.Error())

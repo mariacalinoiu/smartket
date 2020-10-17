@@ -74,7 +74,17 @@ func newServer(db datasources.DBClient, options ...option) *server {
 	)
 	s.mux.HandleFunc("/orders",
 		func(w http.ResponseWriter, r *http.Request) {
-			handlers.HandleOrders(w, r, db, s.logger)
+			handlers.HandleOrdersAdd(w, r, db, s.logger)
+		},
+	)
+	s.mux.HandleFunc("/orders/delete",
+		func(w http.ResponseWriter, r *http.Request) {
+			handlers.HandleOrdersDelete(w, r, db, s.logger)
+		},
+	)
+	s.mux.HandleFunc("/orders/update",
+		func(w http.ResponseWriter, r *http.Request) {
+			handlers.HandleOrdersUpdate(w, r, db, s.logger)
 		},
 	)
 

@@ -222,17 +222,17 @@ func (client DBClient) InsertOrder(order repositories.Order) (repositories.Order
 }
 
 func (client DBClient) EditOrder(order repositories.Order) error {
-	isVoucherValid := client.isVoucherValid(order.VoucherCode)
+	isVoucherValid := len(order.VoucherCode) == 0 || client.isVoucherValid(order.VoucherCode)
 	if !isVoucherValid {
 		return errors.New("the voucher code provided is invalid")
 	}
 
-	stmt, err := client.db.Prepare("REPLACE INTO Orders(ID, firstName, lastName, email, phoneNumber, city, address, voucherCode, paymentMethod, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := client.db.Prepare("UPDATE Orders SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, city = ?, address = ?, voucherCode = ?, paymentMethod = ?, status = ? WHERE ID = ?")
 	if err != nil {
 		return err
 	}
+
 	_, err = stmt.Exec(
-		order.ID,
 		order.FirstName,
 		order.LastName,
 		order.Email,
@@ -242,6 +242,7 @@ func (client DBClient) EditOrder(order repositories.Order) error {
 		order.VoucherCode,
 		order.PaymentMethod,
 		order.Status,
+		order.ID,
 	)
 
 	return err
