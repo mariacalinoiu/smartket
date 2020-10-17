@@ -56,7 +56,7 @@ Server documentation
 Running the server
 ------------------
 
-Reach project folder:  `cd ~/environment/smartket/src/github.com/mariacalinoiu/smartket/`
+Reach project folder:  `cd ~/environment/smartket/`
 
 Build the server with: `go build server.go`
 
