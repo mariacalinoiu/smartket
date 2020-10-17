@@ -58,6 +58,6 @@ Running the server
 
 Reach project folder:  `cd ~/environment/smartket/`
 
-Build the server with: `go build server.go`
+Build the server with: `go build src/server.go`
 
 Start running the server with `./server`
