@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mariacalinoiu/smartket/repositories"
+	"github.com/mariacalinoiu/smartket/src/repositories"
 )
 
 type DBClient struct {

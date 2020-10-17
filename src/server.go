@@ -11,8 +11,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/mariacalinoiu/smartket/datasources"
-	"github.com/mariacalinoiu/smartket/handlers"
+	"github.com/mariacalinoiu/smartket/src/datasources"
+	"github.com/mariacalinoiu/smartket/src/handlers"
 )
 
 type server struct {
